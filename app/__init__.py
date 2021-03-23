@@ -13,9 +13,11 @@ migrate = Migrate(app, db)
 
 from app.mod_pages.controllers import mod_pages as pages_module
 from app.api.controllers import api as api_module 
+# from app.ner_worker.controllers import ner_worker as ner_worker_module
 
 app.register_blueprint(pages_module)
 app.register_blueprint(api_module)
+# app.register_blueprint(ner_worker_module)
 
 @app.errorhandler(404)
 def not_found(error):

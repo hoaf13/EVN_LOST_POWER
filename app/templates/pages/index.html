@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+  <script src="{{url_for('static', filename='js/myjs.js')}}" script type="text/javascript" charset="utf-8"></script>
+  
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/style.css') }}">
+  <title>Document</title>
+</head>
+<body>
+
+  <script type="text/javascript" charset="utf-8">
+    
+  </script>
+
+  <h1>EVN LOST POWER ANNOUNCER</h1>
+    
+    <pz`>Để chatbot có phản hồi tốt nhất, các tên riêng nên được viết hoa.</p>
+
+    <input id="nickname" style="padding-right: 10px;" type="text" placeholder="Nhap ten cua anh chi" name="single_message" required>
+    <button id="send-btn-nickname" class="btn btn-success" type="button" >Send</button>
+    <button id="reload-btn" class="btn btn-success" type="button" >Reload</button>
+    
+    </br></br></br>
+    
+    <div class="box">
+      
+    </div>  
+  
+    <div class="send-msg">    
+      <input id="my-message" style="padding-right: 10px;" type="text" placeholder="Join the conversation" name="single_message" required>
+      <button id="send-btn" class="btn btn-success" type="button" >Send</button>
+    </div>
+
+</body>
+</html>

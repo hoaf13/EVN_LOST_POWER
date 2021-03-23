@@ -15,41 +15,46 @@ class Classifier:
 		self.tokenizer = None
 		self.intent_labels = ['intent_all_field', 'intent_cant_hear','intent_dont_clear', 
 		'intent_only_home', 'intent_provide_address', 'intent_provide_name']
-
+		
+	def predict(self, X_test):
+		X_embedding = self.preprocessing(X_test)
+		y_pred = self.model.predict(X_embedding)
+		ans = []
+		for y in y_pred:
+			tmp = dict()
+			index = np.argmax(y)
+			tmp['label'] = self.intent_labels[index]
+			tmp['probability'] = y[index]
+			ans.append(tmp)
+		return ans 	
 
 	def __str__(self):
 		return "{}".format("BertModel90")
 
-
 	def create_model(self, path_weights=None):
-		self.tokenizer = AutoTokenizer.from_pretrained("vinai/phobert-base", use_fast=False)
-
 		phobert = TFAutoModel.from_pretrained("vinai/phobert-base")
+		self.tokenizer = AutoTokenizer.from_pretrained("vinai/phobert-base", use_fast=False)
 		MAX_LEN = 25
 		ids = tf.keras.layers.Input(shape=(25), dtype=tf.int32)
 		mask = tf.keras.layers.Input(shape=(25,), name='attention_mask', dtype='int32')
-	
+		# For transformers v4.x+: 
+
 		embeddings = phobert(ids,attention_mask = mask)[0]
-		X = (tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(128)))(embeddings)
+		X =( tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(128)))(embeddings)
 		X = tf.keras.layers.BatchNormalization()(X)
 		X = tf.keras.layers.Dense(128, activation='relu')(X)
 		X = tf.keras.layers.Dropout(0.1)(X)
 		y = tf.keras.layers.Dense(6, activation='softmax', name='outputs')(X)
-		
 		self.model = tf.keras.models.Model(inputs=[ids,mask], outputs=[y])
-		# self.model.layers[2].trainable = False
-		# self.model.compile(optimizer='Adam',loss = 'categorical_crossentropy',metrics='accuracy')
+		# model.summary()
+		# model.layers[2].trainable = False
+		# model.layers[2].roberta.embeddings.trainable = True
+		# print()
+		# print(model.layers[2])
+		# inputs = [inputs]
+		# model.compile(optimizer='Adam',loss = 'categorical_crossentropy',metrics='accuracy')
 		if path_weights != None:
 			self.model.load_weights(path_weights)
-			
-	# def create_model2(self):
-	# 	model = tf.keras.Sequential(
-	# 		tf.keras.layers.Dense(128,activation='relu'),
-	# 		tf.keras.layers.Dense(6,activation='relu')
-	# 	)
-	# 	model.compile(optimizer='Adam', loss=tf.keras.losses.categorical_crossentropy)
-	# 	return model
-
 
 	def preprocessing(self, X_train):
 		
@@ -81,14 +86,4 @@ class Classifier:
 		# pass
 	
 	
-	def predict(self, X_test):
-		X_embedding = self.preprocessing(X_test)
-		y_pred = self.model.predict(X_embedding)
-		ans = []
-		for y in y_pred:
-			tmp = dict()
-			index = np.argmax(y)
-			tmp['label'] = self.intent_labels[index]
-			tmp['probability'] = y[index]
-			ans.append(tmp)
-		return ans 	
+	

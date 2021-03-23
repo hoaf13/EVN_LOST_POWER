@@ -1,3 +1,7 @@
-h1 {
-  color: green;
+.bot-msg{
+  color: red;
+}
+
+.client-msg{
+  color: blue;
 }

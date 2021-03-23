@@ -9,13 +9,19 @@ from . import selector, classifier
 import random 
 from app.models import Conversation
 from app import db 
-
+import pika 
 from .utils import generate_action, generate_text, pred_entities, pred_intent, save_to_db
 api = Blueprint('api', __name__, url_prefix='/api')
 
 
 endpoint = '/api/evn-conversation/'
 flag_request_all_field = False
+
+import pika
+import sys
+import time 
+
+print(__package__)
 
 class EVNannouncer(MethodView):
     
@@ -28,12 +34,11 @@ class EVNannouncer(MethodView):
 
 
     def post(self):
-        
         sender = request.json.get('sender')
-        intent = request.json.get('intent')
         message = request.json.get('message')
-        prob = 1.0
-
+        print("sender: {}".format(sender))
+        print("message: {}".format(message))
+        print("length of conversations: {}".format(len(Conversation.query.all())))
         # lay du lieu truoc do
         conversations = Conversation.query.filter_by(sender_id=sender).all()[-2:]
         for c in conversations:
@@ -41,7 +46,7 @@ class EVNannouncer(MethodView):
         print("length of conversations: {}".format(len(conversations)))
         sender_id = conversations[-1].sender_id
         
-
+        
         previous1_action = conversations[-1].action
         previous2_action = None
         if len(conversations) > 1:
@@ -49,13 +54,11 @@ class EVNannouncer(MethodView):
         print("2 previous: {} - {}".format(previous1_action, str(previous2_action)))
         
         # du doan intent 
-        predicted_intent = intent
-        # intent = 'intent_provide_address'
         prob = str(1.0)
-        # predicted_intent, intent, prob = pred_intent(previous2_action, previous1_action , message, classifier)
-        print("predicted intent: {} - intent after: {} - probability: {}".format(predicted_intent, intent, prob))
-
-
+        predicted_intent, intent, prob = pred_intent(previous2_action, previous1_action , message, classifier)
+        print("predicted intent: {} - intent after: {} - probability: {}".format(predicted_intent, intent, prob))        
+        
+        
         # sinh action
         action = generate_action(previous2_action, previous1_action, intent)
         print("Current Action: {}".format(action))
@@ -67,23 +70,20 @@ class EVNannouncer(MethodView):
             label = 'LOC'
         if intent == 'intent_provide_name':
             label = 'PER'
-        entities = pred_entities(message, label=label)
-
+        entities = pred_entities(message, label)
+        print("entities: {}".format(entities))
         value = entities['value']
-        # print(entities)
-        print("Entities: {}".format(value))
-
-
+        
         # sinh text 
         text = generate_text(previous1_action, action , entities)
         print(text)
 
         # luu vao database
-        save_to_db(sender_id,action,value,message,text)
+        save_to_db(sender_id,predicted_intent,action,value,message,text)
 
         # tra ve ket qua theo yeu cau 
         response = dict()
-        response['status_code'] = "200_ok"
+        response['status_code'] = "201_created"
         response['intent'] = predicted_intent
         response['action'] = action
         response['entities'] = dict()
@@ -91,11 +91,13 @@ class EVNannouncer(MethodView):
         response['entities']['end'] = entities['end']
         response['entities']['value'] = entities['value']
         response['text'] = text
-
+        print(response)
         return jsonify(response)
 
 EVNannouncer_view = EVNannouncer.as_view('EVNannouncer_view')
 app.add_url_rule(endpoint, view_func=EVNannouncer_view, methods=['GET','POST'])
+
+
 
 
 class AllFieldAPI(MethodView):
@@ -143,4 +145,4 @@ class OnlyHomeAPI(MethodView):
 
 OnlyHomeAPI_view = OnlyHomeAPI.as_view('OnlyHomeAPI_view')
 app.add_url_rule('/api/only-home', view_func=OnlyHomeAPI_view, methods=['POST'])
-    
+
